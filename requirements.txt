@@ -1,0 +1,5 @@
+pytest
+coverage
+httpretty
+requests
+requests-oauth2
