@@ -16,6 +16,9 @@ class Stream(BaseApi):
         self.stream_id = kwargs.get('stream_id', None)
         super(Stream, self).__init__(**kwargs)
 
+    def _update_kwargs(self, **kwargs):
+        kwargs.update({'stream_id': getattr(self, 'stream_id', None)})
+
     class Image(BaseApi):
         """
         Sub Class deals with a streams Image
@@ -44,13 +47,13 @@ class Stream(BaseApi):
         return self.session.profile.get('streams')
 
     def image(self, **kwargs):
-        kwargs.update({'stream_id': getattr(self, 'stream_id', None)})
+        self._update_kwargs(**kwargs)
         return self.Image(session=self.session, **kwargs)
 
     def participants(self, **kwargs):
-        kwargs.update({'stream_id': getattr(self, 'stream_id', None)})
+        self._update_kwargs(**kwargs)
         return self.Participants(session=self.session, **kwargs)
 
     def chunks(self, **kwargs):
-        kwargs.update({'stream_id': getattr(self, 'stream_id', None)})
+        self._update_kwargs(**kwargs)
         return self.Chunks(session=self.session, **kwargs)

@@ -10,13 +10,15 @@ subject = RogerTalk(settings=DEV_SETTINGS)
 # subject.stream(stream_id=261360002).get()
 # subject.stream(stream_id=261360002).chunks().get()
 
-def test_wrap_namespace():
-    """
-    Test we have the correct data structure
-    """
-    resp = subject.payment().wrap_namespace(my='test', keywords='here')
-    assert resp == '{"data": {"keywords": "here", "demo": 1, "apikey": "12345", "my": "test"}}'
+# def test_wrap_namespace():
+#     """
+#     Test we have the correct data structure
+#     """
+#     resp = subject.payment().wrap_namespace(my='test', keywords='here')
+#     assert resp == '{"data": {"keywords": "here", "demo": 1, "apikey": "12345", "my": "test"}}'
 
 
 def test_headers():
-    assert subject.payment().headers() == {'Accept': 'application/json;', 'Content-Type': 'application/json; charset=utf-8;'}
+    assert subject.stream().headers() == {'Authorization': 'Bearer {access_token}'.format(access_token=None),
+                                          'Accept': 'application/json;',
+                                          'Content-Type': 'application/json; charset=utf-8;'}
