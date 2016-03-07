@@ -60,5 +60,5 @@ py.test -vvv```
 ToDo
 ----
 
-1. Integrate with requests-oauth2
+1. ~~Integrate with requests-oauth2~~ **not necessary** oauth2 lib is implemented with grant_type password
 3. Tests
