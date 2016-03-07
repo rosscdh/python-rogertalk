@@ -3,13 +3,7 @@ import re
 import json
 import requests
 import urlparse
-
-try:
-    from dotmap import DotMap
-except:
-
-    def DotMap(d):
-        return d
+from dotmap import DotMap
 
 import logging
 logger = logging.getLogger('rogertalk')
