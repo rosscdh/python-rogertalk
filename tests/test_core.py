@@ -7,7 +7,8 @@ DEV_SETTINGS = {
 }
 
 subject = RogerTalk(settings=DEV_SETTINGS)
-subject.stream(stream_id=23).get()
+# subject.stream(stream_id=261360002).get()
+# subject.stream(stream_id=261360002).chunks().get()
 
 def test_wrap_namespace():
     """

@@ -1,9 +1,9 @@
 # -*- coding: UTF-8 -*-
-import logging
-logger = logging.getLogger('rogertalk')
-
 from rogertalk.core import BaseApi
 from rogertalk.validators import require_stream_id
+
+import logging
+logger = logging.getLogger('rogertalk')
 
 
 class Stream(BaseApi):
@@ -20,7 +20,7 @@ class Stream(BaseApi):
         """
         Sub Class deals with a streams Image
         """
-        uri = '/image'
+        uri = '/streams/:stream_id/image'
         http_methods_allowed = ['delete']
         validators = [require_stream_id]
 
@@ -28,7 +28,7 @@ class Stream(BaseApi):
         """
         Sub Class deals with a streams Participants
         """
-        uri = '/participants'
+        uri = '/streams/:stream_id/participants'
         http_methods_allowed = ['delete', 'post']
         validators = [require_stream_id]
 
@@ -36,7 +36,7 @@ class Stream(BaseApi):
         """
         Sub Class deals with a streams Audio Chunks
         """
-        uri = '/chunks'
+        uri = '/streams/:stream_id/chunks'
         http_methods_allowed = ['get', 'post']
         validators = [require_stream_id]
 
@@ -44,10 +44,13 @@ class Stream(BaseApi):
         return self.session.profile.get('streams')
 
     def image(self, **kwargs):
-        return self.Image(session=self.session)
+        kwargs.update({'stream_id': getattr(self, 'stream_id', None)})
+        return self.Image(session=self.session, **kwargs)
 
     def participants(self, **kwargs):
-        return self.Participants(session=self.session)
+        kwargs.update({'stream_id': getattr(self, 'stream_id', None)})
+        return self.Participants(session=self.session, **kwargs)
 
     def chunks(self, **kwargs):
-        return self.Chunks(session=self.session)
+        kwargs.update({'stream_id': getattr(self, 'stream_id', None)})
+        return self.Chunks(session=self.session, **kwargs)
