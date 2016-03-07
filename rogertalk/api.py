@@ -12,14 +12,6 @@ class Stream(BaseApi):
     stream_id = None
     _data = {}
 
-    def __init__(self, **kwargs):
-        self.stream_id = kwargs.get('stream_id', None)
-        super(Stream, self).__init__(**kwargs)
-
-    def _update_kwargs(self, **kwargs):
-        if self.stream_id:
-            kwargs.update({'stream_id': self.stream_id})
-
     class Image(BaseApi):
         """
         Sub Class deals with a streams Image
@@ -43,6 +35,14 @@ class Stream(BaseApi):
         uri = '/streams/:stream_id/chunks'
         http_methods_allowed = ['get', 'post']
         validators = [require_stream_id]
+
+    def __init__(self, **kwargs):
+        self.stream_id = kwargs.get('stream_id', None)
+        super(Stream, self).__init__(**kwargs)
+
+    def _update_kwargs(self, **kwargs):
+        if self.stream_id:
+            kwargs.update({'stream_id': self.stream_id})
 
     def my(self):
         return self.session.profile.get('streams')
