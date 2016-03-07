@@ -12,6 +12,9 @@ logger = logging.getLogger('rogertalk')
 class InvalidApiResponse(Exception): pass
 
 
+class AuthenticationError(Exception): pass
+
+
 def validate(view_func):
     """
     Decorator that executes validation schems against the passed in params
@@ -39,7 +42,11 @@ class Session(object):
     def __init__(self, client_id, client_secret, **kwargs):
         self.client_id = client_id
         self.client_secret = client_secret
-        self.session = self.login()
+        try:
+            self.session = self.login()
+        except Exception as e:
+            raise AuthenticationError(e.message)
+
         self.profile = DotMap(self.session.json())
         self.access_token = self.profile.access_token
         self.refresh_token = self.profile.refresh_token
@@ -49,7 +56,12 @@ class Session(object):
                                                                                                                                    version=self.version,
                                                                                                                                    username=self.client_id,
                                                                                                                                    client_id='aberacadabera')
-        return requests.post(url, data={'password': self.client_secret})
+        resp = requests.post(url, data={'password': self.client_secret})
+
+        if resp.ok is True:
+            return resp
+        else:
+            raise AuthenticationError(resp.content)
 
 
 class BaseApi(object):
