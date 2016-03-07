@@ -17,7 +17,8 @@ class Stream(BaseApi):
         super(Stream, self).__init__(**kwargs)
 
     def _update_kwargs(self, **kwargs):
-        kwargs.update({'stream_id': getattr(self, 'stream_id', None)})
+        if self.stream_id:
+            kwargs.update({'stream_id': self.stream_id})
 
     class Image(BaseApi):
         """
