@@ -14,6 +14,7 @@ setup(
     install_requires=[
         'requests',
         'requests-oauth2',
+        'dotmap',
         'pytest',
         'coverage',
         'httpretty',

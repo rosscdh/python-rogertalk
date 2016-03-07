@@ -3,6 +3,7 @@ import re
 import json
 import requests
 import urlparse
+from dotmap import DotMap
 
 import logging
 logger = logging.getLogger('rogertalk')
@@ -39,9 +40,9 @@ class Session(object):
         self.client_id = client_id
         self.client_secret = client_secret
         self.session = self.login()
-        self.profile = self.session.json()
-        self.access_token = self.profile.get('access_token')
-        self.refresh_token = self.profile.get('refresh_token')
+        self.profile = DotMap(self.session.json())
+        self.access_token = self.profile.access_token
+        self.refresh_token = self.profile.refresh_token
 
     def login(self):
         url = '{base_url}/oauth2/token?api_version={version}&grant_type=password&username={username}&client_id={client_id}'.format(base_url=self.site,
@@ -116,7 +117,7 @@ class BaseApi(object):
 
         if response.ok is True:
 
-            self.response_json = self.response.json()
+            self.response_json = DotMap(self.response.json())
             return self.response_json
 
         #

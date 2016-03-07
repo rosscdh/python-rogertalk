@@ -3,3 +3,4 @@ coverage
 httpretty
 requests
 requests-oauth2
+dotmap
