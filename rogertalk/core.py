@@ -3,10 +3,19 @@ import re
 import json
 import requests
 import urlparse
-from dotmap import DotMap
+
+try:
+    from dotmap import DotMap
+except:
+
+    def DotMap(d):
+        return d
 
 import logging
 logger = logging.getLogger('rogertalk')
+
+
+class MethodNotAllowedError(Exception): pass
 
 
 class InvalidApiResponse(Exception): pass
@@ -79,6 +88,10 @@ class BaseApi(object):
         self.response = self.response_json = {}
         self.params = kwargs
 
+    def _method_is_allowed(self, method):
+        if method not in self.http_methods_allowed:
+            raise MethodNotAllowedError('Method not allowed')
+
     @property
     def base_url(self):
         return self.session.site
@@ -139,41 +152,31 @@ class BaseApi(object):
         raise InvalidApiResponse('Rogertalk Api returned (%s) an invalid response: %s %s' % (response.status_code, response.url, response.content))
 
     def get(self, **kwargs):
-        if 'get' not in self.http_methods_allowed:
-            raise Exception('Method not allowed')
-
+        self._method_is_allowed('get')
         return self.process(response=self.r.get(self.endpoint(),
                             headers=self.headers(),
                             params=kwargs))
 
     def post(self, **kwargs):
-        if 'post' not in self.http_methods_allowed:
-            raise Exception('Method not allowed')
-
+        self._method_is_allowed('post')
         return self.process(response=self.r.post(self.endpoint(),
                             headers=self.headers(),
                             data=self.wrap_namespace(**kwargs)))
 
     def put(self, **kwargs):
-        if 'put' not in self.http_methods_allowed:
-            raise Exception('Method not allowed')
-
+        self._method_is_allowed('put')
         return self.process(response=self.r.put(self.endpoint(),
                             headers=self.headers(),
                             data=self.wrap_namespace(**kwargs)))
 
     def patch(self, **kwargs):
-        if 'patch' not in self.http_methods_allowed:
-            raise Exception('Method not allowed')
-
+        self._method_is_allowed('patch')
         return self.process(response=self.r.patch(self.endpoint(),
                             headers=self.headers(),
                             data=self.wrap_namespace(**kwargs)))
 
     def delete(self, **kwargs):
-        if 'delete' not in self.http_methods_allowed:
-            raise Exception('Method not allowed')
-
+        self._method_is_allowed('delete')
         return self.process(response=self.r.delete(self.endpoint(),
                             headers=self.headers(),
                             params=kwargs))
