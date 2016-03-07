@@ -72,8 +72,8 @@ rogerroger.stream(stream_id=261360002).chunks().get()
 We use py.test
 
 ```
-py.test -vvv```
-
+py.test -vvv
+```
 
 ToDo
 ----
