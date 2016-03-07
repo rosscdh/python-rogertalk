@@ -14,16 +14,17 @@ except:
 import logging
 logger = logging.getLogger('rogertalk')
 
-
+#
+# Exceptions
+#
 class MethodNotAllowedError(Exception): pass
-
-
 class InvalidApiResponse(Exception): pass
-
-
 class AuthenticationError(Exception): pass
 
 
+#
+# Decorators
+#
 def validate(view_func):
     """
     Decorator that executes validation schems against the passed in params
@@ -32,10 +33,14 @@ def validate(view_func):
         print args
         for validator in self.validators:
             print validator
-        return "<p>{0}</p>".format(view_func(self))
+        return view_func(self)
     return func_wrapper
 
 
+#
+# Session object
+# Logs user in and stores the response as profile and access_token
+#
 class Session(object):
     """
     Session object
@@ -72,6 +77,10 @@ class Session(object):
         else:
             raise AuthenticationError(resp.content)
 
+
+#
+# Base Api Object
+#
 
 class BaseApi(object):
     """
