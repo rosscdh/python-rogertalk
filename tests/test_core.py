@@ -2,13 +2,12 @@
 from rogertalk import RogerTalk
 
 DEV_SETTINGS = {
-    'ROGERTALK_DEVELOPMENT': True,
-    'ROGERTALK_DEMO': True,
-    'ROGERTALK_TOKEN': '12345',
+    'ROGERTALK_CLIENT_ID': 'lbdjqv8ry1',
+    'ROGERTALK_CLIENT_SECRET': 'tb85hqi4jt',
 }
 
 subject = RogerTalk(settings=DEV_SETTINGS)
-
+subject.stream(stream_id=23).get()
 
 def test_wrap_namespace():
     """

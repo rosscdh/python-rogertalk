@@ -7,43 +7,62 @@ import urlparse
 import logging
 logger = logging.getLogger('rogertalk')
 
-SUPPORTED_LANGUAGES = (
-    ('de_DE', 'Deutsch'),
-    ('en_US', 'English')
-)
-
-
-class BadApiServesHTMLInsteadOfJsonExcepton(Exception):
-    message = 'This api, is misconfigured. It serves HTML instead of a valid api format (json) as a response'
-
 
 class InvalidApiResponse(Exception): pass
+
+
+def validate(view_func):
+    """
+    Decorator that executes validation schems against the passed in params
+    """
+    def func_wrapper(self, *args, **kwargs):
+        print args
+        for validator in self.validators:
+            print validator
+        return "<p>{0}</p>".format(view_func(self))
+    return func_wrapper
 
 
 class Session(object):
     """
     Session object
     """
-    site = 'https://api.rogertalk.com/'
-    token = None
+    site = 'https://api.rogertalk.com'
+    version = 'v10'
+    access_token = None
+    refresh_token = None
+    version = 10
+    session = None
+    profile = None
 
-    def __init__(self, token, **kwargs):
-        self.token = token
-        # We default to english as translation should be the responsibility
-        # of the implementing client, not the provider
-        self.language = kwargs.pop('language', 'en_US')
-        self.is_development = kwargs.pop('is_development', True)
-        self.is_demo = kwargs.pop('is_demo', True)
-        self.labels = kwargs.pop('ROGERTALK_LABELS', None)
+    def __init__(self, client_id, client_secret, **kwargs):
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.session = self.login()
+        self.profile = self.session.json()
+        self.access_token = self.profile.get('access_token')
+        self.refresh_token = self.profile.get('refresh_token')
+
+    def login(self):
+        url = '{base_url}/oauth2/token?api_version={version}&grant_type=password&username={username}&client_id={client_id}'.format(base_url=self.site,
+                                                                                                                                   version=self.version,
+                                                                                                                                   username=self.client_id,
+                                                                                                                                   client_id='aberacadabera')
+        return requests.post(url, data={'password': self.client_secret})
 
 
 class BaseApi(object):
+    """
+    Api Client Objects, wrapper for functionality
+    """
     r = requests
     http_methods_allowed = ['get', 'post', 'patch', 'put', 'delete']
+    validators = []
 
     def __init__(self, session, **kwargs):
         self.session = session
-        self.token = session.token
+        self.access_token = session.access_token
+        self.refresh_token = session.refresh_token
         self.response = self.response_json = {}
         self.params = kwargs
 
@@ -72,46 +91,39 @@ class BaseApi(object):
     def headers(self, **kwargs):
         # We ONLY talk json, XML is very 1995 ;)
         headers = {
+            'Authorization': 'Bearer {access_token}'.format(access_token=self.access_token),
             'Content-Type': 'application/json; charset=utf-8;',
             'Accept': 'application/json;'
         }
         headers.update(kwargs)
         return headers
 
+    @validate
     def wrap_namespace(self, **kwargs):
         """
         Wrap all posted data in the structure that RogerTalk expects
         A flat dict with all the attributes just kinda mixed in there
         """
-        kwargs.update({
-            'apikey': self.token,
-            'demo': self.session.is_demo.real  # Convert bool to 0 or 1 for php api
-        })
+        kwargs.update({})
         return json.dumps({'data': kwargs})
 
     def endpoint(self, *args, **kwargs):
-        return urlparse.urljoin(self.base_url, self.parse_uri, *args, **kwargs)
+        uri_path = '/v{version}{uri}'.format(version=self.session.version, uri=self.parse_uri)
+        return urlparse.urljoin(self.base_url, uri_path, *args, **kwargs)
 
     def process(self, response):
         self.response = response
 
         if response.ok is True:
 
-            try:
-                self.response_json = self.response.json()
-                return self.response_json
-
-            except ValueError as e:
-                if e.message == 'No JSON object could be decoded':
-                    raise BadApiServesHTMLInsteadOfJsonExcepton(e.message)
-                else:
-                    raise InvalidApiResponse(e.message)
+            self.response_json = self.response.json()
+            return self.response_json
 
         #
         # Handle the bad CLI api implementation of 404 returning HTML and not
         # a valid REST reponse
         #
-        raise InvalidApiResponse('Secupay Api returned (%s) an invalid response: %s %s' % (response.status_code, response.url, response.content))
+        raise InvalidApiResponse('Rogertalk Api returned (%s) an invalid response: %s %s' % (response.status_code, response.url, response.content))
 
     def get(self, **kwargs):
         if 'get' not in self.http_methods_allowed:
@@ -152,35 +164,3 @@ class BaseApi(object):
         return self.process(response=self.r.delete(self.endpoint(),
                             headers=self.headers(),
                             params=kwargs))
-
-
-class Stream(BaseApi):
-    uri = 'streams/:stream_id'
-    http_methods_allowed = ['get', 'post']
-    stream_id = None
-    _data = {}
-
-    def __init__(self, **kwargs):
-        self.stream_id = kwargs.pop('stream_id', None)
-        super(Stream, self).__init__(**kwargs)
-
-    class Image(BaseApi):
-        uri = 'image'
-        http_methods_allowed = ['delete']
-
-    class Participants(BaseApi):
-        uri = 'participants'
-        http_methods_allowed = ['delete', 'post']
-
-    class Chunks(BaseApi):
-        uri = 'chunks'
-        http_methods_allowed = ['get', 'post']
-
-    def image(self, **kwargs):
-        return self.Image(session=self.session)
-
-    def participants(self, **kwargs):
-        return self.Participants(session=self.session)
-
-    def chunks(self, **kwargs):
-        return self.Chunks(session=self.session)
